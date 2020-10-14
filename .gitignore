@@ -2,4 +2,5 @@ data/*
 *.Rproj
 *.log
 *.pdf
-.Rproj.user/*
+.Rproj.user
+.Rhistory
