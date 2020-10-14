@@ -2,23 +2,32 @@
 title: "DC for Social Science: Exercises for Day 2"
 author: "Lachlan Deer"
 output: 
-  unilur::tutorial_pdf_solution: default
   unilur::tutorial_pdf: default
+  unilur::tutorial_pdf_solution: default
+urlcolor: blue
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Before We Start
+
+You will need to use the following libraries:
+
 ```{r, echo = TRUE, eval=TRUE, message=FALSE}
+library(readr)
 library(dplyr)
 library(lubridate)
 library(tidyr)
 library(ggplot2)
 ```
 
+And you will have needed to download the `SAFI` data. 
 
-```{r, echo = FALSE, eval=TRUE, message=FALSE, purl=FALSE}
+The code below will download the cleaned SAFI data as a csv file into a subdirectory called `data` if you have not already downloaded the data, otherwise it will print a message saying the data doesn't need to be downloaded.
+
+```{r, echo = TRUE, eval=TRUE, message=FALSE, purl=FALSE}
 dest_file <- "data/SAFI_clean.csv"
 if(!file.exists(dest_file)){
   dir.create('data')
@@ -28,42 +37,39 @@ message ('data already downloaded')
 }
 ```
 
+Load the data that was downloaded as follows: 
 ```{r, echo = TRUE, eval=TRUE, message=FALSE}
-interviews <- readr::read_csv('data/SAFI_clean.csv', na = "NULL")
-
+interviews <- read_csv('data/SAFI_clean.csv', na = "NULL")
 ```
 
-# Working With Data
+**Solutions:** Will be made available at the end of the session [here](https://lachlandeer.github.io/2020-10-13-uwm-online/assets/exercises-day2_solution.pdf).
+
+# Part 1 - Working With Data
 
 ## Exercise 1
 
 - Create a data frame (`interviews_100`) containing only the data in row 100 of the `interviews` dataset.
 
 ```{r, solution = TRUE}
-interviews_100 <- interviews[100, ]
+interviews_100 <- slice(interviews, 100)
 ```
 
-- Notice how `nrow()` gave you the number of rows in a data frame?
-  - Use that number to pull out just that last row in the data frame.
-  - Compare that with what you see as the last row using `tail()` to make sure it's meeting expectations.
-  - Pull out that last row using `nrow()` instead of the row number.
-  - Create a new data frame (`interviews_last`) from that last row.
+- Create a new data frame (`interviews_last`) from that last row. (*Hint:* Refer to `?n()` for help)
 
 ```{r, solution = TRUE}
-n_rows <- nrow(interviews)
-interviews_last <- interviews[n_rows, ]
+interviews_last <- slice(interviews, n())
 ```
 
-- Using the number of rows in the interviews dataset that you found in  question 2, extract the row that is in the middle of the dataset. Store the content of this middle row in an object named `interviews_middle`. (hint: This dataset has an odd number of rows, so finding the middle is a bit trickier than dividing n_rows by 2. Use the median( ) function and what you've learned about sequences in R to extract the middle row!)
+- Extract the row that is in the middle of the dataset and store the content of this middle row in an object named `interviews_middle`. (*hint:* Use the `median()` function and what you've learned about `n()` to find the middle row!)
 
 ```{r, solution = TRUE}
-interviews_middle <- interviews[median(1:n_rows), ]
+interviews_middle <- slice(interviews, median(1:n()))
 ```
 
-- Combine nrow() with the - notation above to reproduce the behavior of head(interviews), keeping just the first through 6th rows of the interviews dataset
+- Combine `n()` with `slice()` to reproduce the behavior of head(interviews), keeping just the first through 6th rows of the interviews dataset. Name the resulting dataset `interviews_head`.
 
 ```{r, solution = TRUE}
-interviews_head <- interviews[-(7:n_rows), ]
+interviews_head <- slice(interviews, -(7:n()))
 ```
 
 ## Exercise 2
@@ -131,7 +137,7 @@ interviews_months_lack_food %>%
   summarize(mean_months = mean(number_months))
 ```
 
-# Plotting
+# Part 2 - Plotting
 
 ```{r, echo = FALSE}
 interviews_plotting <- interviews %>%
@@ -156,9 +162,9 @@ interviews_plotting <- interviews %>%
 
 ## Exercise 1
 
-Boxplots are useful summaries, but hide the shape of the distribution. For example, if the distribution is bimodal, we would not see it in a boxplot. An alternative to the boxplot is the violin plot, where the shape (of the density of points) is drawn.
+Boxplots are useful summaries, but hide the shape of the distribution. For example, if the distribution is bimodal, we would not see it in a boxplot. 
 
-- Replace the box plot with a violin plot; see geom_violin().
+- An alternative to the boxplot is the violin plot, where the shape (of the density of points) is drawn.. Replace the box plot with a violin plot; use `?geom_violin()` for help as needed.
 
 ```{r, solution = TRUE}
 interviews_plotting %>%
@@ -176,7 +182,7 @@ interviews_plotting %>%
    geom_jitter(alpha = 0.5, width = 0.2, height = 0.2)
 ```
  
-- Add colour to the data points on your boxplot according to whether the respondent is a member of an irrigation association (memb_assoc).
+- Add colour to the data points on your previous boxplot according to whether the respondent is a member of an irrigation association (memb_assoc).
 
 ```{r, solution = TRUE}
 interviews_plotting %>%
@@ -187,20 +193,14 @@ interviews_plotting %>%
 
 ## Exercise 2
 
+- Create a plot that visualizes the proportion of respondents in each village who owned a particular item?
+  - *HINT:* To complete this exercise you will need a count of the number of interviewees in each village. The following lines of code will give you this. You need to join new column of data into the existing dataset to proceed (search `?inner_join` to explore one way to do this).
 ```{r, echo = TRUE, eval = TRUE}
-### Intermezzio - Joining Data
 village_pop <- interviews_plotting %>%
         group_by(village) %>%
         count() %>%
         rename(people_in_village = n)
-
-# Example of how to merge data 
-interviews_plotting_2 <- interviews_plotting %>%
-                  inner_join(village_pop, by = c("village"))
 ```
-
-- Create a plot that visualizes the proportion of respondents in each village who owned a particular item?
-
 
 ```{r, solution = TRUE}
 percent_items <- interviews_plotting %>%
